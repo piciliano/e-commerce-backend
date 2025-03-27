@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres
+    container_name: garageApi
+    environment:
+      POSTGRES_USER: garageApi
+      POSTGRES_PASSWORD: docker
+      POSTGRES_DB: bd_garage_pg
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

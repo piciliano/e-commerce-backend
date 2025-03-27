@@ -1,0 +1,52 @@
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+model User {
+    id       String @id @default(uuid())
+    name     String
+    email    String @unique
+    password String
+    cart     String[]
+
+    comments Comment[]
+
+}
+
+model Picture {
+    id   String @id @default(uuid())
+    link String
+    productId String
+    product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model Product {
+    id String @id @default(uuid())
+    title String
+    description String
+    price String
+    pictures    Picture[] 
+
+    comments Comment[]
+}
+
+model Comment {
+    id String @id @default(uuid())
+    comment String
+    rating Int @default(0)
+    author String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+     userId    String
+     user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+     productId String
+     product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+}
