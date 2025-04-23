@@ -1,42 +1,33 @@
 import {
+  BadRequestException,
   Body,
   Controller,
-  FileTypeValidator,
   Get,
-  MaxFileSizeValidator,
-  ParseFilePipe,
   Post,
-  UploadedFile,
-  UseGuards,
+  UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
 import { PicturesService } from './pictures.service';
 import { TokenPayloadParam } from 'src/auth/params/token-payload.param';
 import { TokenPayloadDto } from 'src/auth/dto/token-payload.dto';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { CreatePictureDto } from './dto/create-picture.dto';
 
 @Controller('pictures')
 export class PicturesController {
   constructor(private readonly picturesService: PicturesService) {}
 
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FilesInterceptor('files', 5))
   @Post()
-  async uploadPicture(
+  async uploadPictures(
     @Body() createPictureDto: CreatePictureDto,
-    @UploadedFile(
-      new ParseFilePipe({
-        validators: [
-          new MaxFileSizeValidator({ maxSize: 10 * (1024 * 1024) }),
-          new FileTypeValidator({ fileType: /jpeg|jpg|png/ }),
-        ],
-      }),
-    )
-    file: Express.Multer.File,
-    @TokenPayloadParam()
-    tokenPayload: TokenPayloadDto,
+    @UploadedFiles() files: Express.Multer.File[],
+    @TokenPayloadParam() tokenPayload: TokenPayloadDto,
   ) {
-    return this.picturesService.create(file, createPictureDto);
+    if (files.length > 5) {
+      throw new BadRequestException('Você pode enviar no máximo 5 imagens.');
+    }
+    return this.picturesService.create(files, createPictureDto);
   }
 
   @Get()

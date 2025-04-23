@@ -1,4 +1,5 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { Category } from 'src/enums/categoryEnum';
 
 export class CreateProductDto {
   @IsString()
@@ -12,4 +13,11 @@ export class CreateProductDto {
   @IsString()
   @IsNotEmpty()
   price: string;
+
+  @IsNumber()
+  @IsNotEmpty()
+  quantity: number;
+
+  @IsEnum(Category)
+  category: Category;
 }

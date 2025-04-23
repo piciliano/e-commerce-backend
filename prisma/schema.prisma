@@ -15,6 +15,7 @@ model User {
     cart     String[]
 
     comments Comment[]
+    products Product[]
 
 }
 
@@ -25,14 +26,29 @@ model Picture {
     product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
+enum Category {
+  acessorios
+  moda
+  alimentacao
+  moda_pet
+  games
+  academia
+  eletronicos
+}
+
 model Product {
     id String @id @default(uuid())
     title String
     description String
     price String
+    quantity Int
     pictures    Picture[] 
 
     comments Comment[]
+    userId String
+    user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    category Category
 }
 
 model Comment {
@@ -43,10 +59,10 @@ model Comment {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-     userId    String
-     user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId    String
+    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-     productId String
-     product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+    productId String
+    product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
 }

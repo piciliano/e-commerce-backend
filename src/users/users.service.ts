@@ -1,4 +1,5 @@
 import {
+  ForbiddenException,
   HttpException,
   HttpStatus,
   Injectable,
@@ -9,6 +10,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'prisma/prisma.service';
 import { User } from '@prisma/client';
 import { HashingServiceProtocol } from 'src/auth/hashing/hashing.service';
+import { TokenPayloadDto } from 'src/auth/dto/token-payload.dto';
 
 @Injectable()
 export class UsersService {
@@ -87,16 +89,23 @@ export class UsersService {
     }
   }
 
-  async findOne(id: string): Promise<User> {
+  async findOne(id: string, tokenPayload: TokenPayloadDto): Promise<User> {
     try {
       const user = await this.prisma.user.findUnique({
         where: {
           id: id,
         },
+        include: { products: true },
       });
 
       if (!user) {
         throw new NotFoundException('No user found');
+      }
+
+      if (tokenPayload.id !== user.id) {
+        throw new ForbiddenException(
+          'You do not have permission to access this user',
+        );
       }
 
       return user;
@@ -104,7 +113,44 @@ export class UsersService {
       throw new HttpException(
         {
           statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-          message: 'Error creating user',
+          message: 'You have not permission',
+          error: error.message || 'unknown error',
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+  async findProductsByUser(tokenPayload: TokenPayloadDto): Promise<User> {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: {
+          id: tokenPayload.id,
+        },
+        include: {
+          products: {
+            include: {
+              pictures: true,
+            },
+          },
+        },
+      });
+
+      if (!user) {
+        throw new NotFoundException('No user found');
+      }
+
+      if (tokenPayload.id !== user.id) {
+        throw new ForbiddenException(
+          'You do not have permission to access this user',
+        );
+      }
+
+      return user;
+    } catch (error) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          message: 'Error fetching user products',
           error: error.message || 'unknown error',
         },
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -118,7 +164,11 @@ export class UsersService {
 
   async remove(id: string) {
     try {
-      const user = await this.findOne(id);
+      const user = await this.prisma.user.findUnique({
+        where: {
+          id,
+        },
+      });
 
       if (user) {
         return this.prisma.user.delete({

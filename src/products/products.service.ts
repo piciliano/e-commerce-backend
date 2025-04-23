@@ -18,10 +18,16 @@ const removeAccents = (str: string): string => {
 @Injectable()
 export class ProductsService {
   constructor(private prisma: PrismaService) {}
-  async create(createProductDto: CreateProductDto) {
+  async create(
+    createProductDto: CreateProductDto,
+    tokenPayLoad: TokenPayloadDto,
+  ) {
     try {
       return this.prisma.product.create({
-        data: createProductDto,
+        data: {
+          ...createProductDto,
+          userId: tokenPayLoad.id,
+        },
       });
     } catch (error) {
       throw new HttpException(
@@ -195,8 +201,31 @@ export class ProductsService {
     return `This action updates a #${id} product`;
   }
 
-  remove(id: string) {
-    return `This action removes a #${id} product`;
+  async remove(id: string) {
+    try {
+      const product = await this.prisma.product.findUnique({
+        where: {
+          id,
+        },
+      });
+
+      if (product) {
+        await this.prisma.product.delete({
+          where: {
+            id,
+          },
+        });
+      }
+    } catch (error) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          message: 'Error creating user',
+          error: error.message || 'unknown error',
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   async removeProductInCart(id: string, tokenPayLoad: TokenPayloadDto) {

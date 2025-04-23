@@ -20,9 +20,13 @@ import { TokenPayloadDto } from 'src/auth/dto/token-payload.dto';
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
+  @UseGuards(AuthTokenGuard)
   @Post()
-  create(@Body() createProductDto: CreateProductDto) {
-    return this.productsService.create(createProductDto);
+  create(
+    @Body() createProductDto: CreateProductDto,
+    @TokenPayloadParam() TokenPayloadDto: TokenPayloadDto,
+  ) {
+    return this.productsService.create(createProductDto, TokenPayloadDto);
   }
 
   @UseGuards(AuthTokenGuard)
