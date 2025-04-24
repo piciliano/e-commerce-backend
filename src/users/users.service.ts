@@ -23,13 +23,15 @@ export class UsersService {
     try {
       const password = await this.hashingService.hash(createUserDto.password);
 
-      const { email, name } = createUserDto;
+      const { email, name, birth, phone } = createUserDto;
 
       return this.prisma.user.create({
         data: {
           password,
           email,
           name,
+          birth,
+          phone,
         },
       });
     } catch (error) {
