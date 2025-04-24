@@ -145,6 +145,33 @@ export class UsersService {
         );
       }
 
+      if (Array.isArray(user.cart) && user.cart.length > 0) {
+        const existingProducts = await this.prisma.product.findMany({
+          where: {
+            id: {
+              in: user.cart,
+            },
+          },
+          select: { id: true },
+        });
+
+        const validIds = new Set(existingProducts.map((p) => p.id));
+        const updatedCart = user.cart.filter((productId) =>
+          validIds.has(productId),
+        );
+
+        if (updatedCart.length !== user.cart.length) {
+          await this.prisma.user.update({
+            where: { id: user.id },
+            data: {
+              cart: updatedCart,
+            },
+          });
+
+          user.cart = updatedCart;
+        }
+      }
+
       return user;
     } catch (error) {
       throw new HttpException(
