@@ -21,7 +21,6 @@ export class PicturesController {
     @Body() createPictureDto: CreatePictureDto,
     @UploadedFiles() files: Express.Multer.File[],
   ) {
-    console.log('Arquivos recebidos:', files);
     if (!files) {
       throw new BadRequestException('Nenhum arquivo enviado.');
     }
