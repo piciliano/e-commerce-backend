@@ -8,8 +8,6 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { PicturesService } from './pictures.service';
-import { TokenPayloadParam } from 'src/auth/params/token-payload.param';
-import { TokenPayloadDto } from 'src/auth/dto/token-payload.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { CreatePictureDto } from './dto/create-picture.dto';
 
@@ -22,8 +20,11 @@ export class PicturesController {
   async uploadPictures(
     @Body() createPictureDto: CreatePictureDto,
     @UploadedFiles() files: Express.Multer.File[],
-    @TokenPayloadParam() tokenPayload: TokenPayloadDto,
   ) {
+    console.log('Arquivos recebidos:', files);
+    if (!files) {
+      throw new BadRequestException('Nenhum arquivo enviado.');
+    }
     if (files.length > 5) {
       throw new BadRequestException('Você pode enviar no máximo 5 imagens.');
     }
